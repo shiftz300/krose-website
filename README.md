@@ -19,7 +19,7 @@ bun run dev
 - `public/assets/`：带内容哈希的 Opus 音频包，直接保留在 Git 中，不使用 Git LFS。
 - `scripts/`：本地服务器、JavaScript 检查与资源完整性校验。
 - `tests/`：MIDI 导入导出、录音编辑、动态 AMS 回归测试及独立测试数据。
-- `bun.lock`：包含固定的 Wrangler 4.156.0 及其传递依赖；Wrangler 是唯一直接开发依赖。
+- `bun.lock`：包含固定的 Wrangler 4.156.0 及其传递依赖；直接开发依赖为 Wrangler 和固定版本的 `ogg-opus-decoder`。
 
 ## Cloudflare Workers（当前部署入口）
 
@@ -71,3 +71,9 @@ bun run deploy:pages
 分类旁的采样库下拉框可切换板载与 OASYS Piano。OASYS Piano 包含 EXPCM001 的 32 个预置引用、272 个采样及其板载波形依赖，音频沿用分块 Opus 有损试听。预置以可选的源波形进行试听，释放包络与 AMS 读取原参数；未重建完整的多 OSC 叠加与原厂效果链。
 
 离线导出入口保留在研究工程 `research/tools/export_oasys_web.py`，完整 PCM24 WAV 与导出记录位于 `research/output/OASYS_Piano_WAV/`。网站正常运行只需要本仓库资源。
+
+## Safari / Opus 兼容
+
+优先原生解码 Ogg Opus。失败后自动启动同源 Worker，通过 `ogg-opus-decoder` 1.7.5 的 WASM 解码，仍使用同一套 Opus 包。解码后进入现有 AudioBuffer 缓存，所有采样准备好之前继续显示加载进度。原生可解码的浏览器不请求解码器资源。
+
+仅发布约 115 KiB 的基础解码器，不发布语音机器学习增强包。厂商 bundle 固定版本与 SHA-256，`bun run build` 从锁定依赖同步并校验。CSP 仅增加同源 Worker 与 WASM 编译权限。解码器及其依赖的许可见 `public/vendor/OPUS-LICENSES.txt`。

@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const data=JSON.parse(fs.readFileSync(require.resolve('../public/catalog.json')));
 const elements=new Map(),element=()=>({textContent:'',value:'',classList:{toggle(){}},setAttribute(){}}),get=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id)};
 const buttons=['programs','drumkits'].map(tab=>({...element(),dataset:{tab},disabled:false}));
-const context={window:{},document:{getElementById:get,querySelectorAll:()=>buttons},localStorage:{getItem:()=>null},catalog:data};
+const context={KroseOpusDecoder:class{},window:{},document:{getElementById:get,querySelectorAll:()=>buttons},localStorage:{getItem:()=>null},catalog:data};
 const source=fs.readFileSync(require.resolve('../public/app.js'),'utf8');
 assert(source.includes('  init();'));
 vm.runInNewContext(source.replace('  init();',`  data=catalog;

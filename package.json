@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "bun scripts/serve.cjs",
-    "build": "bun scripts/validate.cjs",
+    "build": "bun scripts/vendor-opus.cjs && bun scripts/validate.cjs",
     "test": "bun scripts/test.cjs",
     "deploy": "wrangler deploy",
     "deploy:check": "wrangler deploy --dry-run",
@@ -17,6 +17,7 @@
   },
   "packageManager": "bun@1.4.4",
   "devDependencies": {
+    "ogg-opus-decoder": "1.7.5",
     "wrangler": "4.156.0"
   }
 }

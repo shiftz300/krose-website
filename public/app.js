@@ -16,6 +16,7 @@
   const blockCache = new Map(), blockLoading = new Map(), sampleCache = new Map(), sampleLoading = new Map();
   const blockProgress = new Map();
   let loading = true, loadJob = null, prepared = new Map();
+  const opusDecoder=new KroseOpusDecoder();
   const selects={};let recorder=null,releaseAMS=null,amsOrigin=0,lastMidiClock=0;
   let reverbSlots=[],reverbActive=0,reverbTimer=0,reverbBusyUntil=0;
   const noteName = n => ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'][n % 12] + (Math.floor(n / 12) - 1);
@@ -92,7 +93,7 @@
       const info = data.samples[id];
       const bytes = await block(info.pack);
       const encoded = bytes.slice(info.offset,info.offset+info.length);
-      const buffer = await context.decodeAudioData(encoded);
+      const buffer = await opusDecoder.decode(context,encoded);
       return touch(sampleCache,id,buffer,96);
     })();
     sampleLoading.set(id,task);
@@ -464,7 +465,7 @@
       if(Object.hasOwn(keyboardMap,event.code)){event.preventDefault();noteOn((octave+1)*12+keyboardMap[event.code],`key-${event.code}`)}
     });
     window.addEventListener('keyup',event=>{if(event.code==='Space'){spacePedal=false;updatePedal()}noteOff(`key-${event.code}`)});
-    window.addEventListener('blur',allOff);window.addEventListener('pagehide',allOff);
+    window.addEventListener('blur',allOff);window.addEventListener('pagehide',()=>{allOff();opusDecoder.close()});
     window.matchMedia('(max-width:760px)').addEventListener('change',()=>{allOff();renderKeyboard()});
     document.addEventListener('visibilitychange',()=>{if(document.hidden)allOff()});
     $('export').onclick=showSelection;

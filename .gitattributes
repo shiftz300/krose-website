@@ -1,0 +1,2 @@
+# Vendor JS embeds encoded WASM bytes; preserve the upstream bundle exactly.
+public/vendor/*.min.js binary
