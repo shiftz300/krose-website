@@ -362,3 +362,9 @@ dialog{animation:panel-enter .2s ease-out}
 .favorites-button svg{display:block;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round}
 
 footer a{color:inherit;text-decoration:none;transition:color .18s ease}footer a:hover,footer a:focus-visible{color:var(--ink)}
+
+.filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:center;gap:12px}
+.filters #category,.filters #library{width:auto;max-width:none}
+#library .select-trigger{color:#73776e}
+.filters .save-filter{white-space:nowrap}
+@media(max-width:380px){.filters{gap:8px}.filters .select-trigger{gap:7px;font-size:10px}}

@@ -65,3 +65,9 @@ bun run deploy:pages
 采样解码与固件分析不在此仓库。相关研究保留在相邻 `krose/research` 工程；重新导出目录与音频时，先在研究工程生成并验证，再将 `catalog.json` 和完整的 `assets/` 一起更新到 `public/`。不要混用不同版本目录和资源包。日常网页开发只改此仓库，无需运行研究脚本。
 
 完整演示曲的来源及署名保留在 [music-credits.html](public/music-credits.html)，MIDI 测试文件沿用其中相应的来源和许可。采样源于个人持有设备的研究提取；本仓库未对原厂音色资源授予额外许可。
+
+## OASYS Piano
+
+分类旁的采样库下拉框可切换板载与 OASYS Piano。OASYS Piano 包含 EXPCM001 的 32 个预置引用、272 个采样及其板载波形依赖，音频沿用分块 Opus 有损试听。预置以可选的源波形进行试听，释放包络与 AMS 读取原参数；未重建完整的多 OSC 叠加与原厂效果链。
+
+离线导出入口保留在研究工程 `research/tools/export_oasys_web.py`，完整 PCM24 WAV 与导出记录位于 `research/output/OASYS_Piano_WAV/`。网站正常运行只需要本仓库资源。

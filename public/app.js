@@ -6,7 +6,7 @@
   const categoryNames = {'PIANO':'钢琴','E.PIANO':'电钢琴','ORGAN':'风琴','BELL':'钟 / 打击乐','STRINGS':'弦乐 / 人声','BRASS':'管乐','SYNTH LEAD':'合成主音','SYNTH PAD':'铺底','GUITAR':'吉他','BASS':'贝斯','DRUM/SFX':'鼓 / 音效'};
   const keyboardMap = {KeyA:0,KeyW:1,KeyS:2,KeyE:3,KeyD:4,KeyF:5,KeyT:6,KeyG:7,KeyY:8,KeyH:9,KeyU:10,KeyJ:11,KeyK:12};
   const shortcuts = {0:'A',1:'W',2:'S',3:'E',4:'D',5:'F',6:'T',7:'G',8:'Y',9:'H',10:'U',11:'J',12:'K'};
-  let data, all = new Map(), waveById = new Map(), kitById = new Map(), tab = 'programs', page = 0;
+  let data, all = new Map(), waveById = new Map(), kitById = new Map(), tab = 'programs', page = 0, library = 'onboard';
   let selected = null, currentWave = null, selectionVersion = 0, octave = 4, melodicOctave = 4, kitOctave = 3, onlySaved = false;
   let saved = new Set();
   try { const value = JSON.parse(localStorage.getItem('krose-web-selected-v1') || '[]'); if (Array.isArray(value)) saved = new Set(value); } catch {}
@@ -311,7 +311,14 @@
     $('saveSound').textContent=active?'♥':'♡';$('saveSound').setAttribute('aria-pressed',String(!!active));
     $('saveSound').setAttribute('aria-label',selected?`${active?'取消收藏':'收藏'} ${selected.name}`:'收藏当前声音');
   }
-  function listedSounds(){return tab==='programs'?data.programs.filter(r=>r.category!=='DRUM/SFX'):data[tab]}
+  const soundLibrary = sound => sound.library || 'onboard';
+  function listedSounds(){return data[tab].filter(r=>soundLibrary(r)===library&&(tab!=='programs'||r.category!=='DRUM/SFX'))}
+  function setLibrary(value){
+    library=value;selects.library.value=value;page=0;
+    if(library==='oasys-piano'&&tab==='drumkits')tab='programs';
+    document.querySelectorAll('[data-tab]').forEach(button=>{const active=button.dataset.tab===tab;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));button.disabled=library==='oasys-piano'&&button.dataset.tab==='drumkits'});
+    renderCategory();$('libraryCount').textContent=library==='oasys-piano'?'OASYS Piano':'原机采样 / ROM LIBRARY';
+  }
   function renderCategory() {
     const categories=tab==='waveforms'?[...new Set(data.waveforms.flatMap(r=>r.categories))]:[...new Set(listedSounds().map(r=>r.category))];
     selects.category.setOptions([{value:'',label:'全部分类'},...categories.map(c=>({value:c,label:categoryNames[c]||c}))]);
@@ -326,7 +333,9 @@
     $('pageCount').textContent=`${page+1} / ${pages}`;$('prev').disabled=page===0;$('next').disabled=page===pages-1;
   }
   function choose(id,settings={}) {
-    allOff(settings);selectionVersion++;selected=all.get(id);amsOrigin=ctx?.currentTime||0;releaseAMS?.reset();if(!selected)return Promise.resolve(false);
+    const sound=all.get(id);if(!sound)return Promise.resolve(false);
+    if(soundLibrary(sound)!==library)setLibrary(soundLibrary(sound));
+    allOff(settings);selectionVersion++;selected=sound;amsOrigin=ctx?.currentTime||0;releaseAMS?.reset();if(!selected)return Promise.resolve(false);
     $('soundName').textContent=selected.name;
     $('soundMeta').textContent=`${selected.id} / ${categoryNames[selected.category]||selected.category}`;
     let options=[];
@@ -421,6 +430,7 @@
       renderCategory();renderList();$('soundList').scrollTop=0;
     });
     $('search').oninput=()=>{page=0;renderList();$('soundList').scrollTop=0};
+    selects.library.onchange=()=>{setLibrary(selects.library.value);$('search').value='';$('soundList').scrollTop=0;choose(library==='oasys-piano'?'OP002':'A000')};
     selects.category.onchange=()=>{page=0;renderList();$('soundList').scrollTop=0};
     $('savedFilter').onclick=()=>{onlySaved=!onlySaved;page=0;$('savedFilter').setAttribute('aria-pressed',String(onlySaved));renderList()};
     $('soundList').onclick=event=>{const button=event.target.closest('[data-choose],[data-save]');if(!button)return;if(button.dataset.save)toggleSave(button.dataset.save);else choose(button.dataset.choose)};
@@ -509,7 +519,8 @@
       for(const kind of ['programs','waveforms','drums','drumkits'])for(const r of data[kind]){r.kind=kind;all.set(r.id,r)}
       waveById=new Map(data.waveforms.map(w=>[w.id,w]));
       kitById=new Map(data.drumkits.map(k=>[k.id,k]));
-      for(const id of ['category','waveform','piece']){selects[id]=new KroseSelect($(id));$(id).kroseSelect=selects[id]}
+      for(const id of ['category','library','waveform','piece']){selects[id]=new KroseSelect($(id));$(id).kroseSelect=selects[id]}
+      selects.library.setOptions([{value:'onboard',label:'板载'},{value:'oasys-piano',label:'OASYS Piano'}]);
       releaseAMS=new KroseReleaseAMS(data.releaseAMSTables);
       recorder=new KroseMidi.MidiRecorder({
         ready:()=>!loading&&!!currentWave,clock:()=>ctx?.currentTime||0,prepareAudio:()=>audioContext().resume(),stopAudio:()=>allOff(),
