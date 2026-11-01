@@ -1,0 +1,14 @@
+{
+  "name": "krose-website",
+  "version": "0.1.0",
+  "private": true,
+  "description": "KROSE preview",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node scripts/serve.cjs",
+    "build": "node scripts/validate.cjs",
+    "test": "node scripts/test.cjs"
+  }
+}

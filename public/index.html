@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f6f2">
+  <meta name="description" content="Krose 原机采样库。选择声音，用键盘试弹，留下你喜欢的音色。">
+  <title>KROSE</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232b302b'/%3E%3Ctext x='14' y='47' fill='%23f7f6f2' font-size='48' font-family='serif'%3Ek%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="custom-select.js" defer></script>
+  <script src="piano-roll.js" defer></script>
+  <script src="midi-recorder.js" defer></script>
+  <script src="release-ams.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <a class="wordmark" href="./" aria-label="KROSE preview 首页">KROSE<span>preview</span></a>
+    <div class="header-actions"><span id="libraryCount">原机采样 · 加载中</span><button id="export" class="text-button favorites-button" aria-label="已选声音" title="已选声音"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.4 5.4 0 0 0-7.6 0L12 5.8l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.8a5.4 5.4 0 0 0 0-7.6Z"/></svg></button></div>
+  </header>
+  <nav class="workspace-tabs" role="tablist" aria-label="工作区"><button id="performTab" role="tab" aria-selected="true" aria-controls="performPanel" data-workspace="perform">试听</button><button id="recordTab" role="tab" aria-selected="false" aria-controls="recordPanel" data-workspace="record" tabindex="-1">录音</button></nav>
+  <main id="workspace" data-workspace="perform">
+    <aside class="library" aria-label="声音列表">
+      <div class="library-top">
+        <nav class="tabs" aria-label="声音类型"><button data-tab="programs" class="active" aria-pressed="true">音色</button><button data-tab="drumkits" aria-pressed="false">鼓组</button></nav>
+        <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="名称或编号" aria-label="搜索声音" autocomplete="off"></label>
+        <div class="filters"><div id="category" class="custom-select" data-label="声音分类"></div><button id="savedFilter" class="save-filter" aria-pressed="false">♡ 已选</button></div>
+        <div id="resultCount" class="result-count" aria-live="polite">正在读取声音目录</div>
+      </div>
+      <div id="soundList" class="sound-list" aria-label="可选声音"></div>
+      <div class="pagination"><button id="prev" aria-label="上一页">←</button><span id="pageCount"></span><button id="next" aria-label="下一页">→</button></div>
+    </aside>
+    <section class="instrument" aria-labelledby="soundName">
+      <div id="performPanel" class="workspace-panel" role="tabpanel" aria-labelledby="performTab">
+      <div class="sound-heading"><div><div id="soundMeta" class="eyebrow">KROSE / ROM LIBRARY</div><h1 id="soundName">—</h1></div><button id="saveSound" class="save-sound" aria-label="收藏当前声音" aria-pressed="false">♡</button></div>
+      <div class="source-line"><div class="source-picker"><span id="sourceLabel">波形</span><div id="waveform" class="custom-select" data-label="试听波形"></div><span id="soundDescription" class="sound-description"></span></div><div class="demo-controls"><div id="piece" class="custom-select" data-label="试听曲目"></div><button id="phrase" class="text-button" disabled>▶ 播放</button><span id="phraseTime"></span></div></div>
+      </div>
+      <section id="recordPanel" class="workspace-panel record-panel" role="tabpanel" aria-labelledby="recordTab" hidden>
+        <div class="record-heading"><div><div id="recordSound" class="eyebrow">—</div><h1 id="recordSoundName">—</h1></div><span id="recordState" class="sr-only" role="status" aria-live="polite"></span></div>
+        <div class="record-actions"><button id="recordStart" class="transport-button record-primary" aria-label="开始录制" title="录制 · 最长 10 分钟" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/></svg></button><button id="recordStop" class="transport-button" aria-label="停止录制或回放" title="停止" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="1"/></svg></button><button id="recordReplay" class="transport-button" aria-label="回放录音" title="回放" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4 L21 12 L7 20 Z"/></svg></button><output id="recordTime">00:00</output><div class="record-files"><button id="recordImport" class="record-file-button" aria-label="导入 MIDI" title="导入 MIDI"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/></svg></button><input id="midiFile" type="file" accept=".mid,.midi,audio/midi,audio/x-midi" hidden><button id="recordDownload" class="record-file-button" aria-label="下载 MIDI" title="下载 MIDI" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v13m-5-5 5 5 5-5M4 16v5h16v-5"/></svg></button></div></div>
+        <div class="roll-toolbar"><span id="rollRange">0–5s</span><span>拖音符编辑 · 拖空白平移</span><div><button id="rollUndo" aria-label="撤销编辑" title="撤销" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 4 9l5 5M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button><button id="rollFit" title="显示完整录音">适应</button></div></div>
+        <div id="rollOverview" class="roll-overview" aria-label="录音视口总览"><svg id="overviewNotes" viewBox="0 0 1000 40" preserveAspectRatio="none" aria-hidden="true"></svg><div id="rollWindow" class="roll-window"><button id="rollLeft" aria-label="视口左边界" title="拖动调整视口左边界">&lt;|</button><div id="rollWindowPan" aria-label="移动视口"></div><button id="rollRight" aria-label="视口右边界" title="拖动调整视口右边界">|&gt;</button></div></div>
+        <div id="rollEditor" class="midi-roll" tabindex="0" aria-label="MIDI 音符编辑器"><svg id="recordRoll" viewBox="0 0 1000 230" preserveAspectRatio="none" role="img" aria-label="录音音符"></svg><button id="recordPosition" type="button" class="roll-record-position" role="slider" aria-label="录音起点" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0" title="拖动选择录音起点"></button><div id="recordCursor" class="roll-playhead" hidden></div></div>
+        <div class="take-heading"><span>录音片段</span><button id="takeAdd" class="take-action" aria-label="新建录音" title="新建录音"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button></div><div id="takeList" class="take-list" aria-label="录音片段"></div><div id="recordMessage" class="record-message" role="status"></div>
+      </section>
+      <div class="play-controls">
+        <div class="octave-control"><span>八度</span><button id="octaveDown" aria-label="降低八度">−</button><output id="octave">4</output><button id="octaveUp" aria-label="升高八度">+</button></div>
+        <label class="slider-control">力度 <input id="velocity" type="range" min="1" max="127" value="100"><output id="velocityValue">100</output></label>
+        <label class="slider-control volume-control">音量 <input id="volume" type="range" min="0" max="100" value="50"><output id="volumeValue">50</output></label>
+        <label class="slider-control reverb-control">混响大小 <input id="reverb" type="range" min="0" max="100" value="20"><output id="reverbValue">20</output></label>
+        <button id="sustain" class="pedal" aria-pressed="false">延音</button>
+        <button id="stop" class="text-button" aria-label="停止全部发声">停止</button>
+        <span id="noteDisplay" class="current-notes"></span><meter id="level" aria-label="输出电平" min="0" max="1" value="0"></meter>
+      </div>
+      <div class="keyboard-wrap"><div id="keyboard" class="keyboard" aria-label="试弹琴键" role="group"></div></div>
+      <div class="keyboard-help"><button id="midi" class="text-button">连接 MIDI</button></div>
+      <div class="status-row"><span id="status" role="status" aria-live="polite">正在加载目录…</span><span id="midiStatus"></span></div>
+      <div id="loading" class="loading-overlay" aria-live="polite"><div class="loading-panel"><span id="loadingTitle">加载声音</span><progress id="loadingProgress" max="100" value="0" aria-label="声音加载进度"></progress><div class="loading-detail"><span id="loadingPercent">0%</span><span id="loadingBytes"></span></div><div id="loadingError"></div><button id="retryLoad" hidden>重试</button></div></div>
+    </section>
+  </main>
+  <footer><span>by shiftz</span><a href="https://github.com/shiftz300/krose-website" target="_blank" rel="noopener noreferrer">GitHub</a></footer>
+  <dialog id="selectionDialog"><form method="dialog"><div class="dialog-heading"><h2>已选声音</h2><button aria-label="关闭选择清单">×</button></div><p id="selectionHint"></p><textarea id="selectionText" readonly aria-label="选择清单"></textarea><div class="dialog-actions"><button type="button" id="downloadSelection">下载 TXT</button><button type="button" id="copySelection">复制清单</button></div><div id="copyStatus" role="status"></div></form></dialog>
+  <dialog id="takeDialog" aria-labelledby="takeDialogTitle"><form id="takeDialogForm"><div class="dialog-heading"><h2 id="takeDialogTitle">重命名录音</h2><button id="takeDialogClose" type="button" aria-label="关闭对话框">×</button></div><p id="takeDialogHint"></p><label id="takeNameLabel" class="take-name-label">名称<input id="takeName" type="text" maxlength="80" autocomplete="off" required></label><div class="dialog-actions"><button id="takeDialogCancel" type="button">取消</button><button id="takeDialogConfirm" type="submit">保存</button></div></form></dialog>
+</body>
+</html>
