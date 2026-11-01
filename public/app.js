@@ -4,16 +4,8 @@
   const $ = id => document.getElementById(id);
   const esc = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const categoryNames = {'PIANO':'钢琴','E.PIANO':'电钢琴','ORGAN':'风琴','BELL':'钟 / 打击乐','STRINGS':'弦乐 / 人声','BRASS':'管乐','SYNTH LEAD':'合成主音','SYNTH PAD':'铺底','GUITAR':'吉他','BASS':'贝斯','DRUM/SFX':'鼓 / 音效'};
-  // Lower pair: C3–E4 (A/F replace the reserved Z/X). Upper pair: Q–] = F4–C6.
-  // Offsets are relative to the middle C; no physical key is shared by the pairs.
-  const keyboardMap = {
-    KeyA:-12,KeyS:-11,KeyF:-10,KeyD:-9,KeyC:-8,KeyV:-7,KeyG:-6,KeyB:-5,KeyH:-4,KeyN:-3,KeyJ:-2,KeyM:-1,
-    Comma:0,KeyL:1,Period:2,Semicolon:3,Slash:4,
-    KeyQ:5,Digit2:6,KeyW:7,Digit3:8,KeyE:9,Digit4:10,KeyR:11,KeyT:12,Digit6:13,KeyY:14,Digit7:15,KeyU:16,
-    KeyI:17,Digit9:18,KeyO:19,Digit0:20,KeyP:21,Minus:22,BracketLeft:23,BracketRight:24
-  };
-  const keyLabels={Comma:',',Period:'.',Semicolon:';',Slash:'/',Minus:'−',BracketLeft:'[',BracketRight:']'};
-  const shortcuts=Object.fromEntries(Object.entries(keyboardMap).map(([code,note])=>[note,keyLabels[code]||code.replace(/^(Key|Digit)/,'')]));
+  const keyboardMap = {KeyA:0,KeyW:1,KeyS:2,KeyE:3,KeyD:4,KeyF:5,KeyT:6,KeyG:7,KeyY:8,KeyH:9,KeyU:10,KeyJ:11,KeyK:12};
+  const shortcuts = {0:'A',1:'W',2:'S',3:'E',4:'D',5:'F',6:'T',7:'G',8:'Y',9:'H',10:'U',11:'J',12:'K'};
   let data, all = new Map(), waveById = new Map(), kitById = new Map(), tab = 'programs', page = 0, library = 'onboard';
   let selected = null, currentWave = null, selectionVersion = 0, octave = 4, melodicOctave = 4, kitOctave = 3, onlySaved = false;
   let saved = new Set();
