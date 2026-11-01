@@ -1,0 +1,38 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const elements=new Map(),listeners=new Map();
+const element=()=>({style:{setProperty(){}},classList:{toggle(){}},setAttribute(){},addEventListener(){},querySelectorAll:()=>[]});
+const get=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id)};
+const context={KroseOpusDecoder:class{},localStorage:{getItem:()=>null},document:{getElementById:get,querySelector:()=>null,querySelectorAll:()=>[],addEventListener(){}},window:{matchMedia:()=>({matches:false,addEventListener(){}}),addEventListener(type,listener){listeners.set(type,listener)}}};
+let source=fs.readFileSync(require.resolve('../public/app.js'),'utf8');
+source=source.replace('  init();',`  const emitted=[],released=[];
+  loading=false;currentWave={channels:[]};
+  recorder={active:{id:'still-recording'},setPedal(){},noteOff(){},interrupt(){throw Error('Recording interrupted')}};
+  for(const id of ['category','library','piece','waveform'])selects[id]={};
+  allOff=()=>{throw Error('Octave change stopped the audio')};
+  noteOn=(note,token)=>{const voice={note,oneshot:false};pressed.set(token,{note,voice});voices.set(token,voice);emitted.push(note)};
+  stopVoice=voice=>released.push(voice.note);
+  bind();
+  window.keyboardTest={map:keyboardMap,change:changeOctave,emitted,released,
+    state:()=>({octave,pressed:[...pressed.values()].map(p=>p.note),voices:voices.size,pedalLatch,spacePedal,phrasePlaying,timers:phraseTimers.length,recording:recorder.active.id}),
+    sustain:()=>{pedalLatch=true;spacePedal=true;phrasePlaying=true;phraseTimers.push(42)}};
+`);
+vm.runInNewContext(source,context);
+const test=context.window.keyboardTest;
+assert.equal(Object.keys(test.map).length,37);assert.equal(new Set(Object.values(test.map)).size,37);
+assert.deepEqual(Object.values(test.map).sort((a,b)=>a-b).join(','),Array.from({length:37},(_,i)=>i-12).join(','));
+function key(type,code,extra={}){let prevented=false;listeners.get(type)({code,preventDefault(){prevented=true},target:{matches:()=>false,closest:()=>null},...extra});return prevented}
+assert(key('keydown','KeyZ'));assert.equal(test.emitted.at(-1),48);
+assert(key('keydown','ArrowRight'));assert.equal(test.state().octave,5);assert.equal(test.state().pressed[0],48);
+assert.equal(test.released.length,0);assert.equal(test.state().recording,'still-recording');
+key('keyup','KeyZ');assert.equal(test.released.at(-1),48);assert.equal(test.state().pressed.length,0);
+key('keydown','KeyZ');assert.equal(test.emitted.at(-1),60);
+const count=test.emitted.length;key('keydown','KeyZ',{repeat:true});assert.equal(test.emitted.length,count);
+key('keydown','Digit2');assert.equal(test.emitted.at(-1),78);
+const held=test.state().pressed.join(',');test.sustain();test.change(-1);
+assert.equal(test.state().pressed.join(','),held);assert(test.state().pedalLatch&&test.state().spacePedal&&test.state().phrasePlaying);assert.equal(test.state().timers,1);assert.equal(test.state().recording,'still-recording');
+for(let i=0;i<10;i++)test.change(1);assert.equal(test.state().octave,6);
+for(let i=0;i<10;i++)test.change(-1);assert.equal(test.state().octave,1);
+assert.equal(test.state().pressed.join(','),held);
+const before=test.emitted.length;key('keydown','KeyQ',{target:{matches:()=>true,closest:()=>null}});assert.equal(test.emitted.length,before);
+console.log('PASS: 37 unique consecutive notes, number/letter row bindings, octave changes preserve held pitches, original note-off, pedal, score timers and active recording.');
