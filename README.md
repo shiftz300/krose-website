@@ -4,39 +4,61 @@
 
 ## 本地开发
 
-需要 Node.js 22 或更新版本，无 npm 依赖需要安装。
+使用 Bun 1.4.4 管理依赖、运行构建与测试；Wrangler CLI 使用 Node.js 22（`.node-version` 已提供）。浏览器端没有运行依赖。
 
 ```sh
-npm test
-npm run build
-npm run dev
+bun install --frozen-lockfile
+bun run test
+bun run build
+bun run dev
 ```
 
-访问 http://localhost:8766/。端口可用 `PORT=8767 npm run dev` 修改。
+访问 http://localhost:8766/。端口可用 `PORT=8767 bun run dev` 修改。
 
 - `public/`：直接编辑的网站源文件与部署资源；`catalog.json` 是冻结的音色、曲目及参数数据。
 - `public/assets/`：带内容哈希的 Opus 音频包，直接保留在 Git 中，不使用 Git LFS。
 - `scripts/`：本地服务器、JavaScript 检查与资源完整性校验。
 - `tests/`：MIDI 导入导出、录音编辑、动态 AMS 回归测试及独立测试数据。
+- `bun.lock`：包含固定的 Wrangler 4.156.0 及其传递依赖；Wrangler 是唯一直接开发依赖。
 
-## Cloudflare Pages
+## Cloudflare Workers（当前部署入口）
 
-在 Cloudflare Pages 中连接 `shiftz300/krose-website` GitHub 仓库：
+默认 `wrangler.jsonc` 使用 Workers Static Assets：`assets.directory` 指向 `public`，不需要 Worker 脚本。未知路径返回 404。
+
+Cloudflare 控制台连接仓库后设置：
 
 | 设置 | 值 |
 | --- | --- |
 | Production branch | `main` |
-| Framework preset | `None` |
-| Build command | `npm test && npm run build` |
-| Build output directory | `public` |
 | Root directory | 仓库根目录 |
-| Node.js | `22`（`.node-version` 已提供） |
+| Build command | `bun run test && bun run build` |
+| Deploy command | `bun run deploy` |
+| 环境变量 | `BUN_VERSION=1.4.4` |
 
-`wrangler.jsonc` 已声明项目名及静态输出目录。首次连接仓库仍需要在自己的 Cloudflare 账号中完成；仓库配置不会自动创建账号绑定。
+提交的 `bun.lock` 用于安装 Bun 依赖。构建环境应安装开发依赖，不能设置 `NODE_ENV=production` 跳过 Wrangler。原部署命令 `npx wrangler deploy` 现在也能读取默认 Workers 配置，但建议换为上面的命令以使用项目内固定版本。
 
-也可在已配置 Cloudflare 登录的环境中使用 `npx wrangler pages deploy public --project-name=krose-website` 手动部署。
+本地检查部署配置（不上传、不需要 Cloudflare 登录）：
 
-参考：[静态 HTML 部署](https://developers.cloudflare.com/pages/framework-guides/deploy-anything/)、[Pages Wrangler 配置](https://developers.cloudflare.com/pages/functions/wrangler-configuration/)。
+```sh
+bun run deploy:check
+```
+
+在已登录 Cloudflare 的环境中运行 `bun run deploy` 发布。
+
+## Cloudflare Pages（可选）
+
+如果改用 Pages 的 Git 集成，先用 `wrangler.pages.jsonc` 替换默认 `wrangler.jsonc`，再设置 Framework 为 `None`、Build command 为 `bun run test && bun run build`、输出目录为 `public`。不要在 Pages 项目里运行 Workers 的默认部署命令。
+
+`wrangler.pages.jsonc` 是 Pages 配置模板。Pages CLI 不支持自定义 `--config` 路径，手动部署前也需先将此模板复制为默认配置：
+
+```sh
+cp wrangler.pages.jsonc wrangler.jsonc
+bun run deploy:pages
+```
+
+仅在切换到 Pages 时执行；当前 Workers 部署保留默认配置。
+
+参考：[Workers 静态资源配置](https://developers.cloudflare.com/workers/static-assets/binding/)、[构建环境](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/)。
 
 ## 资源维护
 

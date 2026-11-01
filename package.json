@@ -4,11 +4,19 @@
   "private": true,
   "description": "KROSE preview",
   "engines": {
-    "node": ">=22"
+    "node": ">=22",
+    "bun": ">=1.4.4"
   },
   "scripts": {
-    "dev": "node scripts/serve.cjs",
-    "build": "node scripts/validate.cjs",
-    "test": "node scripts/test.cjs"
+    "dev": "bun scripts/serve.cjs",
+    "build": "bun scripts/validate.cjs",
+    "test": "bun scripts/test.cjs",
+    "deploy": "wrangler deploy",
+    "deploy:check": "wrangler deploy --dry-run",
+    "deploy:pages": "wrangler pages deploy public --project-name=krose-website"
+  },
+  "packageManager": "bun@1.4.4",
+  "devDependencies": {
+    "wrangler": "4.156.0"
   }
 }

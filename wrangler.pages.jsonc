@@ -1,0 +1,6 @@
+{
+  "name": "krose-website",
+  "pages_build_output_dir": "./public",
+  "compatibility_date": "2026-11-01",
+  "$schema": "./node_modules/wrangler/config-schema.json"
+}
