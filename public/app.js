@@ -4,10 +4,10 @@
   const $ = id => document.getElementById(id);
   const esc = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const categoryNames = {'PIANO':'钢琴','E.PIANO':'电钢琴','ORGAN':'风琴','BELL':'钟 / 打击乐','STRINGS':'弦乐 / 人声','BRASS':'管乐','SYNTH LEAD':'合成主音','SYNTH PAD':'铺底','GUITAR':'吉他','BASS':'贝斯','DRUM/SFX':'鼓 / 音效'};
-  // Lower pair: Z–/ = C3–E4. Upper pair: Q–] = F4–C6 (default octave).
+  // Lower pair: C3–E4 (A/F replace the reserved Z/X). Upper pair: Q–] = F4–C6.
   // Offsets are relative to the middle C; no physical key is shared by the pairs.
   const keyboardMap = {
-    KeyZ:-12,KeyS:-11,KeyX:-10,KeyD:-9,KeyC:-8,KeyV:-7,KeyG:-6,KeyB:-5,KeyH:-4,KeyN:-3,KeyJ:-2,KeyM:-1,
+    KeyA:-12,KeyS:-11,KeyF:-10,KeyD:-9,KeyC:-8,KeyV:-7,KeyG:-6,KeyB:-5,KeyH:-4,KeyN:-3,KeyJ:-2,KeyM:-1,
     Comma:0,KeyL:1,Period:2,Semicolon:3,Slash:4,
     KeyQ:5,Digit2:6,KeyW:7,Digit3:8,KeyE:9,Digit4:10,KeyR:11,KeyT:12,Digit6:13,KeyY:14,Digit7:15,KeyU:16,
     KeyI:17,Digit9:18,KeyO:19,Digit0:20,KeyP:21,Minus:22,BracketLeft:23,BracketRight:24
@@ -473,8 +473,8 @@
       if(event.ctrlKey||event.metaKey||event.altKey||event.repeat||event.target.matches('input,select,textarea')||event.target.closest('[role=combobox],[role=listbox]')||document.querySelector('dialog[open]'))return;
       if(loading){if(Object.hasOwn(keyboardMap,event.code)||event.code==='Space')event.preventDefault();return}
       if(event.code==='Space'){event.preventDefault();spacePedal=true;updatePedal();return}
-      if(event.code==='ArrowLeft'||event.code==='ArrowDown'){event.preventDefault();changeOctave(-1);return}
-      if(event.code==='ArrowRight'||event.code==='ArrowUp'){event.preventDefault();changeOctave(1);return}
+      if(event.code==='KeyZ'){event.preventDefault();changeOctave(-1);return}
+      if(event.code==='KeyX'){event.preventDefault();changeOctave(1);return}
       if(Object.hasOwn(keyboardMap,event.code)){event.preventDefault();noteOn((octave+1)*12+keyboardMap[event.code],`key-${event.code}`)}
     });
     window.addEventListener('keyup',event=>{if(event.code==='Space'){spacePedal=false;updatePedal()}noteOff(`key-${event.code}`)});
